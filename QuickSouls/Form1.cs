@@ -144,6 +144,26 @@ namespace QuickSouls
             File.WriteAllLines(@"QuickSouls.ini", lines);
         }
 
+        private void buttonER_Click(object sender, EventArgs e)
+        {
+            string ERDir = Path.Combine(Environment.ExpandEnvironmentVariables("%appdata%"), "EldenRing\\");
+            if (!Directory.Exists(ERDir)) Directory.CreateDirectory(ERDir);
+            List<string> subfolders = new List<string>(Directory.EnumerateDirectories(ERDir));
+            subfolders.RemoveAll(x => x.Contains("Backups"));
+            string ERId = subfolders.Count == 1 ? subfolders[0].Substring(subfolders[0].LastIndexOf("\\") + 1) + "\\" : "paste-your-id-here-and-set\\";
+            
+            if (subfolders.Count != 1) { MessageBox.Show("Could not determine unique ID automatically, please add it in the path field on your own.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation); }
+            
+            textBoxDir.Text = ERDir + ERId;
+            GameID = 6;
+            SaveDir = ERDir + ERId;
+            
+            var lines = File.ReadAllLines(@"QuickSouls.ini");
+            lines[0] = ERDir + ERId;
+            lines[6] = GameID.ToString();
+            File.WriteAllLines(@"QuickSouls.ini", lines);
+        }
+
         // 'Set save directory' button
         private void buttonSetDir_Click(object sender, EventArgs e)
         {
@@ -267,6 +287,14 @@ namespace QuickSouls
                     if (SoundFlag == true)
                         playSound();
                 }
+                
+                // Elden Ring
+                if (GameID == 6 && File.Exists(SaveDir + "ER0000.sl2"))
+                {
+                    File.Copy(SaveDir + "ER0000.sl2", @"quicksave_er.sl2", true);
+                    if (SoundFlag == true)
+                        playSound();
+                }
             }
 
             // Load
@@ -326,6 +354,18 @@ namespace QuickSouls
                     try
                     {
                         File.Copy(@"quicksave_ds3.sl2", SaveDir + "DS30000.sl2", true);
+                        if (SoundFlag == true)
+                            playSound();
+                    }
+                    catch { MessageBox.Show("Could not complete quick load.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation); }
+                }
+                
+                // Elden Ring
+                if (GameID == 6 && File.Exists(@"quicksave_er.sl2"))
+                {
+                    try
+                    {
+                        File.Copy(@"quicksave_er.sl2", SaveDir + "ER0000.sl2", true);
                         if (SoundFlag == true)
                             playSound();
                     }
